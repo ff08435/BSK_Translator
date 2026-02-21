@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "187515605080",
+    "project_id": "yaran-translator",
+    "storage_bucket": "yaran-translator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187515605080:android:8a91c3c2ffe615fa0d7a2d",
+        "android_client_info": {
+          "package_name": "com.example.yaran"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN-PHD9GnYbwg1RjcSoc_LAsMPwNqnirs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
