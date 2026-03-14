@@ -2,8 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 class ApiService {
-  static const String baseUrl = "http://10.20.3.214:8000"; // For Android Emulator
-  // For real device on same WiFi: replace with your PC IPv4, e.g. "http://192.168.1.7:8000"
+  static const String baseUrl = "https://fatima983-burushaski-backend.hf.space"; 
 
   Future<String?> uploadAudio(String filePath) async {
     var url = Uri.parse("$baseUrl/translate-audio");
