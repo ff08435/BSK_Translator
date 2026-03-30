@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yaran/utils/colors.dart';
 import 'package:yaran/utils/constants.dart';
-import 'package:yaran/screens/login_screen.dart';
-import 'package:yaran/screens/register_screen.dart';
+import 'package:yaran/screens/translator_screen.dart'; // goes straight here
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -12,7 +11,7 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -31,7 +30,7 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 const Spacer(),
 
-                // Logo/Icon
+                // Logo
                 Container(
                   width: 120,
                   height: 120,
@@ -63,7 +62,7 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Tagline
-                Text(
+                const Text(
                   AppConstants.appTagline,
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -75,8 +74,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 60),
 
-                // Description
-                Text(
+                const Text(
                   'Speak in Burushaski and get instant\nEnglish translations with ease',
                   textAlign: TextAlign.center,
                   style: TextStyle(
@@ -88,16 +86,16 @@ class WelcomeScreen extends StatelessWidget {
 
                 const Spacer(),
 
-                // Get Started Button
+                // Get Started — goes straight to translator
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
+                          builder: (context) => const TranslatorScreen(),
                         ),
                       );
                     },
@@ -118,37 +116,6 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Already have account
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Already have an account? ',
-                      style: TextStyle(color: AppColors.textGray, fontSize: 14),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          color: AppColors.accentOrange,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
 
                 const SizedBox(height: 40),

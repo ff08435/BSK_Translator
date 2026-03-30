@@ -1,12 +1,10 @@
-//translator_screen.dart
 import 'package:flutter/material.dart';
 import 'package:yaran/utils/colors.dart';
 import 'package:yaran/utils/constants.dart';
 import 'package:yaran/widgets/record_button.dart';
-import 'package:yaran/services/auth_service.dart';
 import 'package:yaran/services/audio_service.dart';
-import 'package:yaran/screens/welcome_screen.dart';
 import 'package:yaran/services/api_service.dart';
+import 'package:yaran/screens/feedback_screen.dart';
 
 class TranslatorScreen extends StatefulWidget {
   const TranslatorScreen({Key? key}) : super(key: key);
@@ -16,11 +14,11 @@ class TranslatorScreen extends StatefulWidget {
 }
 
 class _TranslatorScreenState extends State<TranslatorScreen> {
-  final _authService = AuthService();
   final _audioService = AudioService();
   bool _isRecording = false;
   String _translationText = AppConstants.translationPlaceholder;
   String? _audioPath;
+  bool _showFeedbackButton = false; // shows after any recording attempt
 
   @override
   void initState() {
@@ -35,45 +33,46 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
   }
 
   Future<void> _handleRecordPress() async {
-  if (_isRecording) {
-    // Stop recording
-    final path = await _audioService.stopRecording();
-    setState(() {
-      _isRecording = false;
-      _audioPath = path;
-      _translationText = 'Processing audio...';
-    });
-
-    // SEND AUDIO TO BACKEND
-    if (path != null) {
-      final result = await ApiService().uploadAudio(path);
-
+    if (_isRecording) {
+      final path = await _audioService.stopRecording();
       setState(() {
-        _translationText = result ?? "Error contacting backend.";
+        _isRecording = false;
+        _audioPath = path;
+        _translationText = 'Processing audio...';
+        _showFeedbackButton = false;
       });
-    }
-  } else {
-    // Start recording
-    final started = await _audioService.startRecording();
-    if (started) {
-      setState(() {
-        _isRecording = true;
-        _translationText = AppConstants.recording;
-      });
+
+      if (path != null) {
+        final result = await ApiService().uploadAudio(path);
+        setState(() {
+          // Show whatever came back, or a friendly error
+          _translationText =
+              result ??
+              'Could not reach the translation server. The backend may be sleeping — try again in a moment.';
+          // Show feedback button regardless — user may still want to submit correct translation
+          _showFeedbackButton = true;
+        });
+      }
+    } else {
+      final started = await _audioService.startRecording();
+      if (started) {
+        setState(() {
+          _isRecording = true;
+          _translationText = AppConstants.recording;
+          _showFeedbackButton = false;
+        });
+      }
     }
   }
-}
 
-
-  Future<void> _handleLogout() async {
-    await _authService.signOut();
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-        (route) => false,
-      );
-    }
+  void _openFeedbackSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => FeedbackSheet(originalTranslation: _translationText),
+    );
   }
 
   @override
@@ -92,17 +91,11 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: AppColors.accentOrange),
-            onPressed: _handleLogout,
-          ),
-        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Language Selector Bar
+            // Language bar
             Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -142,7 +135,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
 
             const SizedBox(height: 40),
 
-            // Record Button
+            // Record button
             Expanded(
               child: Center(
                 child: Column(
@@ -164,7 +157,7 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
               ),
             ),
 
-            // Translation Output Area
+            // Translation output box
             Container(
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.35,
@@ -188,15 +181,27 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (_audioPath != null)
-                        IconButton(
+                      // Feedback button — shows after any recording attempt
+                      if (_showFeedbackButton)
+                        TextButton.icon(
+                          onPressed: _openFeedbackSheet,
                           icon: const Icon(
-                            Icons.volume_up,
+                            Icons.flag_outlined,
                             color: AppColors.accentOrange,
+                            size: 18,
                           ),
-                          onPressed: () {
-                            // TODO: Play audio
-                          },
+                          label: const Text(
+                            'Suggest correction',
+                            style: TextStyle(
+                              color: AppColors.accentOrange,
+                              fontSize: 13,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                         ),
                     ],
                   ),
@@ -217,22 +222,6 @@ class _TranslatorScreenState extends State<TranslatorScreen> {
                       ),
                     ),
                   ),
-                  if (_audioPath != null)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.copy,
-                            color: AppColors.textGray,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            // TODO: Copy to clipboard
-                          },
-                        ),
-                      ],
-                    ),
                 ],
               ),
             ),
