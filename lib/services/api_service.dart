@@ -14,20 +14,19 @@ class ApiService {
     );
 
     var response = await request.send();
+    var responseBody = await response.stream.bytesToString();
+
     if (response.statusCode != 200) {
-      print("Upload failed: ${response.statusCode}");
-      return null;
+      return "Upload failed: ${response.statusCode} — $responseBody";
     }
 
-    // Step 2: Get the event_id from the response
-    var responseBody = await response.stream.bytesToString();
     var jsonResponse = jsonDecode(responseBody);
     String eventId = jsonResponse["event_id"];
 
-    // Step 3: Wait for model to finish
+    // Step 2: Wait for model to finish
     await Future.delayed(Duration(seconds: 20));
 
-    // Step 4: Poll for the result using the event_id
+    // Step 3: Poll for the result
     var resultUrl = Uri.parse("$baseUrl/call/transcribe/$eventId");
     var resultResponse = await http.get(resultUrl);
 
@@ -39,9 +38,9 @@ class ApiService {
           return data[0].toString();
         }
       }
+      return "Parsing failed: ${resultResponse.body}";
     }
 
-    print("Result fetch failed: ${resultResponse.statusCode}");
-    return null;
+    return "Result fetch failed: ${resultResponse.statusCode}";
   }
 }
