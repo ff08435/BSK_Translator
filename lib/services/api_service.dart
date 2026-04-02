@@ -7,10 +7,10 @@ class ApiService {
 
   Future<String?> uploadAudio(String filePath) async {
     // Step 1: Submit the audio file to Gradio
-    var url = Uri.parse("$baseUrl/call/predict");
+    var url = Uri.parse("$baseUrl/call/transcribe");
     var request = http.MultipartRequest("POST", url);
     request.files.add(
-      await http.MultipartFile.fromPath('audio', filePath),
+      await http.MultipartFile.fromPath('files', filePath),
     );
 
     var response = await request.send();
@@ -24,12 +24,14 @@ class ApiService {
     var jsonResponse = jsonDecode(responseBody);
     String eventId = jsonResponse["event_id"];
 
-    // Step 3: Poll for the result using the event_id
-    var resultUrl = Uri.parse("$baseUrl/call/predict/$eventId");
+    // Step 3: Wait for model to finish
+    await Future.delayed(Duration(seconds: 20));
+
+    // Step 4: Poll for the result using the event_id
+    var resultUrl = Uri.parse("$baseUrl/call/transcribe/$eventId");
     var resultResponse = await http.get(resultUrl);
 
     if (resultResponse.statusCode == 200) {
-      // Gradio returns server-sent events, parse the data line
       var lines = resultResponse.body.split('\n');
       for (var line in lines) {
         if (line.startsWith('data:')) {
