@@ -7,7 +7,7 @@ class ApiService {
 
   Future<String?> uploadAudio(String filePath) async {
     // Step 1: Submit the audio file to Gradio
-    var url = Uri.parse("$baseUrl/call/transcribe");
+    var url = Uri.parse("$baseUrl/gradio_api/call/transcribe");
     var request = http.MultipartRequest("POST", url);
     request.files.add(
       await http.MultipartFile.fromPath('files', filePath),
@@ -27,7 +27,7 @@ class ApiService {
     await Future.delayed(Duration(seconds: 20));
 
     // Step 3: Poll for the result
-    var resultUrl = Uri.parse("$baseUrl/call/transcribe/$eventId");
+    var resultUrl = Uri.parse("$baseUrl/gradio_api/call/transcribe/$eventId");
     var resultResponse = await http.get(resultUrl);
 
     if (resultResponse.statusCode == 200) {
