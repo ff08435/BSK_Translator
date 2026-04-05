@@ -6,27 +6,46 @@ class ApiService {
   static const String baseUrl = "https://fatima983-burushaski-backend.hf.space";
 
   Future<String?> uploadAudio(String filePath) async {
-    // Step 1: Submit the audio file to Gradio
-    var url = Uri.parse("$baseUrl/gradio_api/call/transcribe");
-    var request = http.MultipartRequest("POST", url);
-    request.files.add(
+    // Step 1: Upload the file first
+    var uploadUrl = Uri.parse("$baseUrl/gradio_api/upload");
+    var uploadRequest = http.MultipartRequest("POST", uploadUrl);
+    uploadRequest.files.add(
       await http.MultipartFile.fromPath('files', filePath),
     );
 
-    var response = await request.send();
-    var responseBody = await response.stream.bytesToString();
+    var uploadResponse = await uploadRequest.send();
+    var uploadBody = await uploadResponse.stream.bytesToString();
 
-    if (response.statusCode != 200) {
-      return "Upload failed: ${response.statusCode} — $responseBody";
+    if (uploadResponse.statusCode != 200) {
+      return "File upload failed: ${uploadResponse.statusCode} — $uploadBody";
     }
 
-    var jsonResponse = jsonDecode(responseBody);
+    var uploadedFiles = jsonDecode(uploadBody);
+    String uploadedPath = uploadedFiles[0];
+
+    // Step 2: Call the transcribe endpoint with JSON
+    var predictUrl = Uri.parse("$baseUrl/gradio_api/call/transcribe");
+    var predictResponse = await http.post(
+      predictUrl,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "data": [
+          {"path": uploadedPath, "_type": "gradio.FileData"}
+        ]
+      }),
+    );
+
+    if (predictResponse.statusCode != 200) {
+      return "Predict failed: ${predictResponse.statusCode} — ${predictResponse.body}";
+    }
+
+    var jsonResponse = jsonDecode(predictResponse.body);
     String eventId = jsonResponse["event_id"];
 
-    // Step 2: Wait for model to finish
+    // Step 3: Wait for model to finish
     await Future.delayed(Duration(seconds: 20));
 
-    // Step 3: Poll for the result
+    // Step 4: Poll for the result
     var resultUrl = Uri.parse("$baseUrl/gradio_api/call/transcribe/$eventId");
     var resultResponse = await http.get(resultUrl);
 
