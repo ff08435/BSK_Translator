@@ -30,7 +30,10 @@ class ApiService {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "data": [
-          {"path": uploadedPath, "_type": "gradio.FileData"}
+          {
+            "path": uploadedPath,
+            "meta": {"_type": "gradio.FileData"}
+          }
         ]
       }),
     );
